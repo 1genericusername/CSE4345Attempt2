@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>USGBC UBID Creator</title>
+  <link rel= "stylesheet" href="{{url_for('static', filename='style.css')}}">
+
+  <link rel="stylesheet" href="https://js.arcgis.com/3.25/dijit/themes/nihilo/nihilo.css">
+  <link rel="stylesheet" href="https://js.arcgis.com/3.25/esri/css/esri.css">
+  <link rel="stylesheet" href="https://js.arcgis.com/3.25/esri/themes/calcite/dijit/calcite.css">
+  <link rel="stylesheet" href="https://js.arcgis.com/3.25/esri/themes/calcite/esri/esri.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="{{url_for('static', filename='jquery.autocomplete.js')}}"></script>
+
+  <link rel="shortcut icon" href="static/usgbc.png">
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+<script>
+  // helpful for understanding dojoConfig.packages vs. dojoConfig.paths:
+  // http://www.sitepen.com/blog/2013/06/20/dojo-faq-what-is-the-difference-packages-vs-paths-vs-aliases/
+  var dojoConfig = { 
+    paths: {
+      extras: "{{url_for('static', filename='/extras')}}"
+    }
+  };
+</script>
+<script src="https://js.arcgis.com/3.25/"></script>
+
+<script src="{{url_for('static', filename='MapInit.js')}}" async=false></script>
+</head>
+
+
+<body onload=>
+  <div class="topnav">
+    <a class="active" href="/home">USGBC UBID</a>
+    <a href="/modal">Modal Version</a>
+    <a href="/modalv2">Modal Version 2</a>
+    <a href="/logout">User Logout</a>
+    <div class="search-container">
+      <input type="text" id="search-nav-bar" placeholder="Project Search..." name="search">
+      <button id="search-add-map" class="button-normal">Add to Map</button>
+    </div>
+  </div>
+  <div id="main-map-section">
+    <h2 style="padding-left: 40px;" class="map-title">UBID Map Creator</h2>
+    <h3 style="padding-left: 60px; color: blue;" id="current-property">Current Property Group Info: N/A</h3>
+    <h3 style="padding-left: 80px; color: red;" id="current-building">Current Building Group Info: N/A</h3>
+    <h3 style="padding-left: 100px; color: green;" id="current-project">Current Project: N/A</h3>
+    <h3 style="padding-left: 80px;" id="edit-show"></h3>
+      <button data-dojo-type="dijit/form/Button">Polygon</button>
+      <button data-dojo-type="dijit/form/Button">Freehand Polygon</button>
+      <!-- <div id="container-map"> -->
+        <div id="map-arcgis">
+          <div id="search-map"></div>
+          <div id="BasemapToggle"></div>
+        </div>
+      <!-- </div> -->
+      <div class="entry-div" style="padding-left: 20px;">
+        <br>
+      <h3><u>LEED Property Entry - Choose One Option:</u></h3>
+
+      <input type="checkbox" 
+      id="checkbox-property" 
+      onclick="toggleRelation('checkbox-property', ['checkbox-building','checkbox-project']);toggleElem('checkbox-property', ['building-input','project-input'], 'property-input', 'property');"
+      value="propertydata"><b>Property Relationship - </b>Add or Update Property Relation;  Boundary; <i>Indicated by Blue Bounding UBID Box</i><br>
+
+      <input type="checkbox" 
+      id="checkbox-building"
+      onclick="toggleRelation('checkbox-building', ['checkbox-property','checkbox-project']);toggleElem('checkbox-building', ['property-input','project-input'], 'building-input', 'building');" 
+      value="buildingdata"><b>Building Relationship - </b>Add or Update Building Relation Boundary; <i>Indicated by Red Bounding UBID Box</i><br>
+
+      <input type="checkbox" 
+      id="checkbox-project" 
+      onclick="toggleRelation('checkbox-project', ['checkbox-building','checkbox-property']);toggleElem('checkbox-project', ['building-input','property-input'], 'project-input', 'project');"
+      value="projectdata"><b>Project Relationship - </b>Add or Update Project Property Boundary; <i>Indicated by Green Bounding UBID Box</i><br>
+    </div>
+    <br>
+
+    <div id='property-input' style="display:none; padding-left: 20px;">
+      <b>Property Relationship Creator Selected!</b><br>
+      <i>Note: This edits all projects attached to this Property...</i>
+    </div>
+
+    <div id='building-input' style="display:none; padding-left: 20px;">
+      <b>Building Relationship Creator Selected!</b><br>
+      Enter a General Name for the Building Boundary such as Empire State Building: <br>
+      <div><b>Building Name:</b> <input type="text" id="property-object-id" value="" maxlength="15" size="20" placeholder="Building Name"></div>
+      <i>Note: This edits all projects attached to this building...</i>
+    </div>
+
+    <div id='project-input' style="display:none; padding-left: 20px;">
+      <b>Project Relationship Creator Selected!</b><br>
+      <div><b>Project Floor Data: </b><input type="text" id="floor_data" value="" style="width: 200px;" maxlength="30" placeholder='Example: "4-6" or "B2,B1,1-5,7-10"'></div>  </div>
+    <br>
+    <div id="submit-polygon-button">
+      <h3>Record Polygon Data as (Selected Above): </h3>
+      <h4>Note: If no ID is added, It is added with ID = -1. This is a Test for Database</h4>
+      <button class="button-normal" onclick="createUBID()">Record UBID Relationship</button>
+      <button class="button-normal" onclick="clearMap()">Clear Map and Inputs</button>
+    </div>
+
+    <div id="div-table" style="padding-bottom: 150px;">
+      <table id="info-table" style="width:100%">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>UBID</th>
+            <th>Polygon</th>
+            <th>Floor Data</th>
+            <th>Relationship type</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+    <div class="footer">
+      <p>Copyright © 2018. U.S. Green Building Council.</p>
+    </div>
+  </div>
+</body>
+</html>
