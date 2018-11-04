@@ -1,0 +1,30 @@
+<!-- /templates/index.html  -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="class-container" style="overflow: auto; max-height: 80vh">
+        <div class="table-responsive">
+            <table class="table table-hover" id="classes">
+                <thead>
+                    <tr>
+                        <th scope="col">Class Name</th> 
+                        <th scope="col">Department</th>
+                        <th scope="col">Number</th>
+                        <th scope="col">Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for class_name in classes %}
+                    <tr id={{ class_name.id }}>
+                        <th scope="row">{{class_name.class_name }}</th>
+                        <td> {{class_name.dept }} </td>
+                        <td> {{ class_name.number }} </td>
+                        <td> {{ class_name.desc }} </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

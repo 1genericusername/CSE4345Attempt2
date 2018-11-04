@@ -1,0 +1,28 @@
+    <!-- /templates/update_class.html  -->
+
+    {% extends 'base.html' %}
+
+    {% block content %}
+        <h2>Edit Class</h2>
+        <form method="POST" id="target" class="inner-form"> 
+            <div class="form-group">
+                <label for="c-name">Class:</label>
+                <input id="c-name" type="text" class="form-control" name="class_name" value="{{ data.class_name }}" required> 
+            </div>
+            <div class="form-group row">
+                <div class="col-6">
+                    <label for="c-dept">Department (e.g. DISC):</label>
+                    <input id="c-dept" type="text" class="form-control" name="dept" value="{{ data.dept }}" required>
+                </div>
+                <div class="col-6">
+                    <label for="c-num">Course Number (e.g. 1301):</label>
+                    <input id="c-num" type="text" class="form-control" name="number" value="{{ data.number }}" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="notes">Notes/Description:</label>
+                <input id="notes" type="text" class="form-control" name="desc" value="{{ data.desc }}">
+            </div>
+            <button type="submit" class="btn btn-block btn-primary">Update</button>
+        </form>
+    {% endblock %}
