@@ -1,8 +1,8 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from database import Base
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
+# from flask_login import UserMixin
 
 class Class(Base):
     __tablename__ = 'classes'
@@ -21,7 +21,7 @@ class Class(Base):
     def __repr__(self):
         return '<Class %r>' % (self.class_name)
 
-class User(UserMixin, Base):
+class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
     email = Column(String(120), index=True, unique=True)

@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, render_template, redirect
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required, UserMixin
 import os
 import json
 import pusher
@@ -7,8 +8,6 @@ from database import db_session
 from models import Class
 from config import Config
 from flask_cors import CORS, cross_origin
-from flask_login import LoginManager
-from flask_login import logout_user
 
 app = Flask(__name__)
 
@@ -38,7 +37,7 @@ def home():
     return render_template('index.html', classes=classes)
 
 
-@app.route('/editClass', methods=["POST", "GET"])
+@app.route('/editClass', methods=['POST', 'GET'])
 def editClass():
     if request.method == "POST":
         class_name = request.form["class_name"]
@@ -55,15 +54,15 @@ def editClass():
                 "number": number,
                 "desc": desc}
 
-        pusher_client.trigger('table', 'new-record', {'data': data })
+        pusher_client.trigger('table', 'new-class', {'data': data })
 
         return redirect("/editClass", code=302)
     else:
         classes = Class.query.all()
         return render_template('edit-class.html', classes=classes)
 
-@app.route('/edit/<int:id>', methods=["POST", "GET"])
-def update_record(id):
+@app.route('/edit/<int:id>', methods=['POST', 'GET'])
+def update_class(id):
     if request.method == "POST":
         class_name = request.form["class_name"]
         dept = request.form["dept"]
@@ -83,29 +82,13 @@ def update_record(id):
 
         return render_template('update_class.html', data=new_class)
 
-# @app.route('/remove/<int:id>', methods=["POST", "GET"])
-# def remove_record(id):
-#     if request.method == "POST":
-#         class_name = request.form["class_name"]
-#         dept = request.form["dept"]
-#         number = request.form["number"]
-#         last_edit = datetime.strptime(request.form['last_edit'], '%d-%m-%Y %H:%M %p')
-#         desc = request.form["desc"]
+@app.route('/remove/<int:id>', methods=['DELETE'])
+def remove_class(id):
+    Class.query.filter_by(id=id).delete()
+    db_session.commit()
+    pusher_client.trigger('table', 'remove-class', {'id': id })
+    return 'OK'
 
-#         update_class = Class.query.get(id)
-#         update_class.class_name = class_name
-#         update_class.dept = dept
-#         update_class.number = number
-#         update_class.last_edit = last_edit
-#         update_class.desc = desc
-#         db_session.commit()
-
-#         return redirect("/backend", code=302)
-#     else:
-#         new_class = Class.query.get(id)
-#         new_class.last_edit = new_class.last_edit.strftime("%d-%m-%Y %H:%M %p")
-
-#         return render_template('update_class.html', data=new_class)
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
